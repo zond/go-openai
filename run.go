@@ -483,7 +483,9 @@ type AssistantStream struct {
 	*streamReader[AssistantStreamEvent]
 }
 
-func (c *Client) CreateThreadAndStream(ctx context.Context, request CreateThreadAndRunRequest) (stream *AssistantStream, err error) {
+func (c *Client) CreateThreadAndStream(
+	ctx context.Context,
+	request CreateThreadAndRunRequest) (stream *AssistantStream, err error) {
 	urlSuffix := "/threads/runs"
 	sr := CreateThreadAndStreamRequest{
 		CreateThreadAndRunRequest: request,
@@ -510,7 +512,10 @@ func (c *Client) CreateThreadAndStream(ctx context.Context, request CreateThread
 	return
 }
 
-func (c *Client) CreateRunStreaming(ctx context.Context, threadID string, request RunRequest) (stream *AssistantStream, err error) {
+func (c *Client) CreateRunStreaming(
+	ctx context.Context,
+	threadID string,
+	request RunRequest) (stream *AssistantStream, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/runs", threadID)
 
 	r := RunRequestStreaming{
