@@ -3,8 +3,10 @@ package openai
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 type Run struct {
@@ -491,6 +493,7 @@ func (c *Client) CreateThreadAndStream(
 		CreateThreadAndRunRequest: request,
 		Stream:                    true,
 	}
+
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
@@ -502,14 +505,34 @@ func (c *Client) CreateThreadAndStream(
 		return
 	}
 
-	resp, err := sendRequestStream[AssistantStreamEvent](c, req)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "text/event-stream")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Connection", "keep-alive")
+
+	resp, err := c.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
+	// resp, err := sendRequestStream[AssistantStreamEvent](c, req)
 	if err != nil {
 		return
 	}
-	stream = &AssistantStream{
-		streamReader: resp,
+	defer resp.Body.Close()
+
+	outf, err := os.Create("thread.run.stream")
+	if err != nil {
+		return nil, err
 	}
-	return
+	defer outf.Close()
+
+	r := io.TeeReader(resp.Body, outf)
+
+	_, err = io.Copy(os.Stdout, r)
+
+	// ChatCompletionStreamChoiceDelta
+
+	// stream = &AssistantStream{
+	// 	streamReader: resp,
+	// }
+	return nil, err
 }
 
 func (c *Client) CreateRunStreaming(
