@@ -169,11 +169,6 @@ type CreateThreadAndRunRequest struct {
 	Thread ThreadRequest `json:"thread"`
 }
 
-type CreateThreadAndStreamRequest struct {
-	CreateThreadAndRunRequest
-	Stream bool `json:"stream"`
-}
-
 type RunStep struct {
 	ID          string         `json:"id"`
 	Object      string         `json:"object"`
@@ -372,7 +367,7 @@ func (c *Client) SubmitToolOutputsStream(
 	threadID string,
 	runID string,
 	request SubmitToolOutputsRequest,
-) (stream *AssistantStream, err error) {
+) (stream *StreamerV2, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s/submit_tool_outputs", threadID, runID)
 	r := SubmitToolOutputsStreamRequest{
 		SubmitToolOutputsRequest: request,
@@ -389,14 +384,7 @@ func (c *Client) SubmitToolOutputsStream(
 		return
 	}
 
-	resp, err := sendRequestStream[AssistantStreamEvent](c, req)
-	if err != nil {
-		return
-	}
-	stream = &AssistantStream{
-		streamReader: resp,
-	}
-	return
+	return sendRequestStreamV2(c, req)
 }
 
 // CancelRun cancels a run.
@@ -487,8 +475,13 @@ type AssistantStream struct {
 func (c *Client) CreateThreadAndRunStream(
 	ctx context.Context,
 	request CreateThreadAndRunRequest) (stream *StreamerV2, err error) {
+	type createThreadAndStreamRequest struct {
+		CreateThreadAndRunRequest
+		Stream bool `json:"stream"`
+	}
+
 	urlSuffix := "/threads/runs"
-	sr := CreateThreadAndStreamRequest{
+	sr := createThreadAndStreamRequest{
 		CreateThreadAndRunRequest: request,
 		Stream:                    true,
 	}
