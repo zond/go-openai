@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sashabaranov/go-openai"
+	"github.com/zond/go-openai"
 )
 
 func TestNewStreamTextReader(t *testing.T) {

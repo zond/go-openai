@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sashabaranov/go-openai"
+	"github.com/zond/go-openai"
 )
 
 // ChunksReader simulates a reader that splits the input across multiple reads.
